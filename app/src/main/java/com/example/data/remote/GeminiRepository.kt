@@ -537,5 +537,87 @@ class GeminiRepository {
             )
         )
     }
+
+    suspend fun evaluateMathAdaptivePerformance(
+        topicTitle: String,
+        scorePercentage: Int,
+        totalQuestions: Int,
+        incorrectQuestionsInfo: String
+    ): Result<AdaptiveMathResponse> = withContext(Dispatchers.IO) {
+        val apiKey = getApiKey()
+        if (apiKey.isEmpty()) {
+            return@withContext Result.success(getFallbackAdaptiveMath(topicTitle, scorePercentage))
+        }
+
+        val prompt = """
+            أنت معلم خبير في رياضيات الصف الثاني الثانوي (موضوع: التفاضل والتكامل - $topicTitle).
+            حصل الطالب في الاختبار التكيفي القصير على نسبة $scorePercentage% (إجابات صحيحة من إجمالي $totalQuestions أسئلة).
+            ملاحظات الأخطاء: $incorrectQuestionsInfo
+
+            قم بتحليل أداء الطالب وتقديم استجابة JSON تحتوي على:
+            1. ملاحظة توجيهية تكيفية (adaptiveNote) تتناسب مع مستواه.
+            2. المستوى الموصى به تالياً (recommendedDifficulty: "تقوية ودعم مكثف" أو "تدريب قياسي" أو "تحدي وتسرع").
+            3. شرح مبسط إضافي للثغرات المفاهيمية (additionalExplanation).
+
+            أرجع النتيجة بصيغة JSON فقط:
+            {
+              "adaptiveNote": "ملاحظة موجهة للطالب مباشرة",
+              "recommendedDifficulty": "تحدي وتسرع",
+              "additionalExplanation": "توضيح الأفكار الأساسية التي تحتاج مراجعة أو تميز"
+            }
+        """.trimIndent()
+
+        val request = GenerateContentRequest(
+            contents = listOf(Content(parts = listOf(Part(text = prompt)))),
+            generationConfig = GenerationConfig(
+                temperature = 0.3f,
+                responseMimeType = "application/json"
+            ),
+            systemInstruction = Content(
+                parts = listOf(
+                    Part(text = "أنت أستاذ رياضيات محترف ومتخصص في منهج الصف الثاني الثانوي لجمهورية مصر العربية بأسلوب مشجع وعلمي محكم.")
+                )
+            )
+        )
+
+        try {
+            val response = apiService.generateContent(apiKey, request)
+            val jsonText = response.candidates?.firstOrNull()?.content?.parts?.firstOrNull()?.text
+            if (!jsonText.isNullOrEmpty()) {
+                val adapter = moshi.adapter(AdaptiveMathResponse::class.java)
+                val adaptResult = adapter.fromJson(jsonText)
+                if (adaptResult != null && adaptResult.adaptiveNote.isNotEmpty()) {
+                    return@withContext Result.success(adaptResult)
+                }
+            }
+            Result.success(getFallbackAdaptiveMath(topicTitle, scorePercentage))
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Result.success(getFallbackAdaptiveMath(topicTitle, scorePercentage))
+        }
+    }
+
+    private fun getFallbackAdaptiveMath(topicTitle: String, scorePercentage: Int): AdaptiveMathResponse {
+        return if (scorePercentage >= 85) {
+            AdaptiveMathResponse(
+                adaptiveNote = "أداء استثنائي! لقد أتقنت المفاهيم الأساسية في $topicTitle بنسبة $scorePercentage%. تم تفعيل وضع \"تسريع المسار\" وفتح المستوى المتقدم القادم مع أسئلة التحدي.",
+                recommendedDifficulty = "تحدي وتسرع",
+                additionalExplanation = "تذكر دائماً أن الاشتقاق والتكامل هما عمليتان عكسيتان. استمر في حل مسائل المستويات العليا للتفوق في الامتحانات الوزارية."
+            )
+        } else if (scorePercentage >= 65) {
+            AdaptiveMathResponse(
+                adaptiveNote = "مستوى جيد جداً ($scorePercentage%)! فهمك للموضوع متين مع الحاجة لتدريب طفيف على بعض الأفكار المركبة.",
+                recommendedDifficulty = "تدريب قياسي",
+                additionalExplanation = "ركز على مراجعة خطوات التبسيط الجبري قبل تطبيق قواعد الاشتقاق أو التعويض في التكامل."
+            )
+        } else {
+            AdaptiveMathResponse(
+                adaptiveNote = "تحتاج إلى دعم وتمارين إضافية ($scorePercentage%). لا تقلق! تم إدراج أسئلة معالجة وتدريبات موجهة لمساعدتك على استيعاب $topicTitle بوضوح.",
+                recommendedDifficulty = "تقوية ودعم مكثف",
+                additionalExplanation = "ننصحك بإعادة قراءة الأمثلة التفاعلية الشارحة خطوة بخطوة أولاً، ثم حل التمارين التكافؤية لترسيخ القواعد الأساسية."
+            )
+        }
+    }
 }
+
 

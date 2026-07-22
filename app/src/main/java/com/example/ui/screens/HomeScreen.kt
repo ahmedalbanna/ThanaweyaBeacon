@@ -25,7 +25,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountTree
 import androidx.compose.material.icons.filled.Analytics
 import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Functions
 import androidx.compose.material.icons.filled.Gavel
 import androidx.compose.material.icons.filled.Grade
 import androidx.compose.material.icons.filled.Info
@@ -359,10 +361,25 @@ fun HomeScreen(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 FeatureTile(
+                    title = "مسار التفاضل والتكامل التكيفي",
+                    subtitle = "دروس تفاعلية واختبارات معالجة (2 ثانوية)",
+                    icon = Icons.Default.Functions,
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    iconTint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = { onNavigateToTab(NavigationTab.MATH_PATH) }
+                )
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                FeatureTile(
                     title = "أنظمة التدريب واختبار الذات",
                     subtitle = "أسئلة امتحانية وبطاقات استذكار",
                     icon = Icons.Default.Quiz,
-                    color = MaterialTheme.colorScheme.primaryContainer,
+                    color = MaterialTheme.colorScheme.surfaceVariant,
                     iconTint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.weight(1f),
                     onClick = { onNavigateToTab(NavigationTab.QUIZ) }
@@ -378,6 +395,7 @@ fun HomeScreen(
                     onClick = { onNavigateToTab(NavigationTab.ANALYZER) }
                 )
             }
+
 
             Row(
                 modifier = Modifier.fillMaxWidth(),

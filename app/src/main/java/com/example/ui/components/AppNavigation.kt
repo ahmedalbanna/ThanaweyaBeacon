@@ -3,6 +3,8 @@ package com.example.ui.components
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountTree
 import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.Calculate
+import androidx.compose.material.icons.filled.Functions
 import androidx.compose.material.icons.filled.Gavel
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LibraryBooks
@@ -22,6 +24,7 @@ import androidx.compose.ui.platform.testTag
 
 enum class NavigationTab(val title: String, val icon: ImageVector, val tag: String) {
     HOME("الرئيسية", Icons.Default.Home, "tab_home"),
+    MATH_PATH("التفاضل والتكامل", Icons.Default.Functions, "tab_math_path"),
     QUIZ("الاختبارات", Icons.Default.Quiz, "tab_quiz"),
     ANALYZER("المُحلل", Icons.Default.Psychology, "tab_analyzer"),
     MIND_MAP("الخرائط", Icons.Default.AccountTree, "tab_mindmap"),
@@ -30,6 +33,7 @@ enum class NavigationTab(val title: String, val icon: ImageVector, val tag: Stri
     PLANNER("التخطيط", Icons.Default.Timer, "tab_planner"),
     ANALYTICS("الأداء", Icons.Default.BarChart, "tab_analytics")
 }
+
 
 @Composable
 fun AppBottomNavigation(

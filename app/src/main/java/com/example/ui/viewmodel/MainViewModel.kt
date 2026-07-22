@@ -7,6 +7,10 @@ import com.example.data.local.AppDatabase
 import com.example.data.local.QuizResultEntity
 import com.example.data.local.StudySessionEntity
 import com.example.data.local.StudyTaskEntity
+import com.example.data.remote.AdaptiveMathResponse
+import com.example.data.remote.CalculusCurriculumData
+import com.example.data.remote.CalculusQuestion
+import com.example.data.remote.CalculusTopicNode
 import com.example.data.remote.DebateMessage
 import com.example.data.remote.DebateTopic
 import com.example.data.remote.DebateTurnFeedback
@@ -15,6 +19,9 @@ import com.example.data.remote.HighSchoolQuiz
 import com.example.data.remote.MindMapResult
 import com.example.data.remote.ResearchResult
 import com.example.data.remote.TextAnalysisResult
+import com.example.data.remote.TopicMasteryState
+import com.example.data.remote.TopicStatus
+
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -83,7 +90,44 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val latestTurnFeedback = MutableStateFlow<DebateTurnFeedback?>(null)
 
 
+    // --- State: Calculus Adaptive Learning Path (الصف الثاني الثانوي) ---
+    val mathCalculusNodes = CalculusCurriculumData.nodes
+    val selectedCalculusNode = MutableStateFlow(mathCalculusNodes.first())
+    val mathMasteryStateMap = MutableStateFlow<Map<String, TopicMasteryState>>(
+        mapOf(
+            "calc_limits" to TopicMasteryState(
+                topicId = "calc_limits",
+                status = TopicStatus.IN_PROGRESS,
+                recommendationNote = "ابدأ بدارسة مفاهيم النهاية والاتصال ثم أجرِ الاختبار القصير لتقييم فهمك."
+            ),
+            "calc_derivatives" to TopicMasteryState(
+                topicId = "calc_derivatives",
+                status = TopicStatus.LOCKED,
+                recommendationNote = "يتطلب هذا الموضوع إتقان نهايات الدوال أولاً."
+            ),
+            "calc_trig_chain" to TopicMasteryState(
+                topicId = "calc_trig_chain",
+                status = TopicStatus.LOCKED,
+                recommendationNote = "يتطلب إتقان قواعد الاشتقاق الأساسية أولاً."
+            ),
+            "calc_integration" to TopicMasteryState(
+                topicId = "calc_integration",
+                status = TopicStatus.LOCKED,
+                recommendationNote = "يتطلب إتقان التفاضل واشتقاق الدوال المثلثية أولاً."
+            )
+        )
+    )
+
+    val currentMathQuestions = MutableStateFlow<List<CalculusQuestion>>(emptyList())
+    val mathQuestionSetType = MutableStateFlow("STANDARD") // "STANDARD", "REMEDIAL", "CHALLENGE"
+    val mathUserAnswers = MutableStateFlow<MutableMap<Int, Int>>(mutableMapOf())
+    val mathQuizSubmitted = MutableStateFlow(false)
+    val mathQuizScore = MutableStateFlow(0)
+    val isMathEvaluating = MutableStateFlow(false)
+    val latestAdaptiveResponse = MutableStateFlow<AdaptiveMathResponse?>(null)
+
     // --- State: General App Config ---
+
     val selectedGrade = MutableStateFlow("الصف الثالث الثانوي - الثانوية العامة")
     val selectedSubject = MutableStateFlow("الفيزياء")
 
@@ -390,5 +434,111 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun resetDebate() {
         startDebateSession(selectedDebateTopic.value)
     }
+
+    // --- Calculus Adaptive Learning Path Actions ---
+    fun selectCalculusTopicNode(node: CalculusTopicNode) {
+        selectedCalculusNode.value = node
+        startMathTopicQuiz(node, "STANDARD")
+    }
+
+    fun startMathTopicQuiz(node: CalculusTopicNode, setType: String = "STANDARD") {
+        selectedCalculusNode.value = node
+        mathQuestionSetType.value = setType
+        val questions = when (setType) {
+            "REMEDIAL" -> node.remedialQuestions.ifEmpty { node.standardQuestions }
+            "CHALLENGE" -> node.challengeQuestions.ifEmpty { node.standardQuestions }
+            else -> node.standardQuestions
+        }
+        currentMathQuestions.value = questions
+        mathUserAnswers.value = mutableMapOf()
+        mathQuizSubmitted.value = false
+        mathQuizScore.value = 0
+        latestAdaptiveResponse.value = null
+    }
+
+    fun selectMathAnswer(questionIndex: Int, optionIndex: Int) {
+        if (mathQuizSubmitted.value) return
+        val current = mathUserAnswers.value.toMutableMap()
+        current[questionIndex] = optionIndex
+        mathUserAnswers.value = current
+    }
+
+    fun submitMathQuiz() {
+        val questions = currentMathQuestions.value
+        if (questions.isEmpty() || mathQuizSubmitted.value) return
+
+        var correctCount = 0
+        val incorrectSummary = StringBuilder()
+
+        questions.forEachIndexed { idx, q ->
+            val userAns = mathUserAnswers.value[idx]
+            if (userAns == q.correctAnswerIndex) {
+                correctCount++
+            } else {
+                incorrectSummary.append("سؤال: ${q.questionText} (خطأ في اختيار الإجابة الصحيحة). ")
+            }
+        }
+
+        val total = questions.size
+        val scorePercent = ((correctCount.toFloat() / total) * 100).toInt()
+
+        mathQuizScore.value = scorePercent
+        mathQuizSubmitted.value = true
+        isMathEvaluating.value = true
+
+        val currentNode = selectedCalculusNode.value
+        val currentMap = mathMasteryStateMap.value.toMutableMap()
+        val currentState = currentMap[currentNode.id] ?: TopicMasteryState(currentNode.id)
+
+        // Adaptive logic:
+        val newStatus = when {
+            scorePercent >= 85 -> TopicStatus.MASTERED
+            scorePercent >= 60 -> TopicStatus.IN_PROGRESS
+            else -> TopicStatus.NEEDS_REINFORCEMENT
+        }
+
+        currentState.status = newStatus
+        currentState.scorePercentage = scorePercent
+        currentState.quizAttempts += 1
+
+        if (mathQuestionSetType.value == "REMEDIAL") {
+            currentState.extraPracticeDone = true
+        }
+
+        // Unlock next prerequisite if mastered
+        if (newStatus == TopicStatus.MASTERED) {
+            val nextNode = mathCalculusNodes.find { it.prerequisiteId == currentNode.id }
+            nextNode?.let { next ->
+                val nextState = currentMap[next.id] ?: TopicMasteryState(next.id)
+                if (nextState.status == TopicStatus.LOCKED) {
+                    nextState.status = TopicStatus.IN_PROGRESS
+                    nextState.recommendationNote = "تم فتح هذا الموضوع تلقائياً بنجاح بعد إتقان ${currentNode.title}!"
+                    currentMap[next.id] = nextState
+                }
+            }
+        }
+
+        currentMap[currentNode.id] = currentState
+        mathMasteryStateMap.value = currentMap
+
+        // Call Gemini for personalized adaptive feedback
+        viewModelScope.launch {
+            val res = repository.evaluateMathAdaptivePerformance(
+                topicTitle = currentNode.title,
+                scorePercentage = scorePercent,
+                totalQuestions = total,
+                incorrectQuestionsInfo = incorrectSummary.toString()
+            )
+            res.onSuccess { adapt ->
+                latestAdaptiveResponse.value = adapt
+                currentState.recommendationNote = adapt.adaptiveNote
+                val updatedMap = mathMasteryStateMap.value.toMutableMap()
+                updatedMap[currentNode.id] = currentState
+                mathMasteryStateMap.value = updatedMap
+            }
+            isMathEvaluating.value = false
+        }
+    }
 }
+
 

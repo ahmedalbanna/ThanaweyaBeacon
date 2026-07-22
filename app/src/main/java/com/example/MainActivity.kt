@@ -21,6 +21,7 @@ import com.example.ui.screens.AnalyticsScreen
 import com.example.ui.screens.AnalyzerScreen
 import com.example.ui.screens.DebateScreen
 import com.example.ui.screens.HomeScreen
+import com.example.ui.screens.MathPathScreen
 import com.example.ui.screens.MindMapScreen
 import com.example.ui.screens.PlannerScreen
 import com.example.ui.screens.QuizScreen
@@ -65,6 +66,7 @@ fun ThanaweyaAppContent(
                     viewModel = viewModel,
                     onNavigateToTab = { selectedTab = it }
                 )
+                NavigationTab.MATH_PATH -> MathPathScreen(viewModel = viewModel)
                 NavigationTab.QUIZ -> QuizScreen(viewModel = viewModel)
                 NavigationTab.ANALYZER -> AnalyzerScreen(viewModel = viewModel)
                 NavigationTab.MIND_MAP -> MindMapScreen(viewModel = viewModel)
@@ -76,4 +78,5 @@ fun ThanaweyaAppContent(
         }
     }
 }
+
 
