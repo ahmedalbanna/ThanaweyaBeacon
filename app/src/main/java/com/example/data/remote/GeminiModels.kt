@@ -105,3 +105,36 @@ data class ResearchResult(
     val searchKeywords: List<String>,
     val verificationGuidance: String
 )
+
+@JsonClass(generateAdapter = true)
+data class DebateTurnFeedback(
+    val argumentStrengthScore: Int = 8,
+    val sourceUsageScore: Int = 7,
+    val reasoningClarityScore: Int = 8,
+    val strengthAnalysis: String = "",
+    val improvementAdvice: String = "",
+    val overallEvaluation: String = ""
+)
+
+@JsonClass(generateAdapter = true)
+data class DebateTurnResponse(
+    val counterArgumentText: String,
+    val feedback: DebateTurnFeedback
+)
+
+data class DebateMessage(
+    val id: String,
+    val isUser: Boolean,
+    val messageText: String,
+    val timestamp: Long = System.currentTimeMillis(),
+    val feedback: DebateTurnFeedback? = null
+)
+
+data class DebateTopic(
+    val id: String,
+    val title: String,
+    val category: String,
+    val initialPerspective: String,
+    val aiOpponentRole: String,
+    val description: String
+)

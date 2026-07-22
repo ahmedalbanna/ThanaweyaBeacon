@@ -26,6 +26,7 @@ import androidx.compose.material.icons.filled.AccountTree
 import androidx.compose.material.icons.filled.Analytics
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Gavel
 import androidx.compose.material.icons.filled.Grade
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LibraryBooks
@@ -383,13 +384,13 @@ fun HomeScreen(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 FeatureTile(
-                    title = "الخرائط الذهنية الهيكلية",
-                    subtitle = "شجرة تفاعلية لتلخيص المناهج",
-                    icon = Icons.Default.AccountTree,
-                    color = MaterialTheme.colorScheme.tertiaryContainer,
-                    iconTint = MaterialTheme.colorScheme.tertiary,
+                    title = "محاكاة المناظرة التاريخية",
+                    subtitle = "ناظر الذكاء كمعارض بالأدلة والمصادر",
+                    icon = Icons.Default.Gavel,
+                    color = MaterialTheme.colorScheme.secondaryContainer,
+                    iconTint = MaterialTheme.colorScheme.secondary,
                     modifier = Modifier.weight(1f),
-                    onClick = { onNavigateToTab(NavigationTab.MIND_MAP) }
+                    onClick = { onNavigateToTab(NavigationTab.DEBATE) }
                 )
 
                 FeatureTile(
@@ -408,6 +409,16 @@ fun HomeScreen(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 FeatureTile(
+                    title = "الخرائط الذهنية الهيكلية",
+                    subtitle = "شجرة تفاعلية لتلخيص المناهج",
+                    icon = Icons.Default.AccountTree,
+                    color = MaterialTheme.colorScheme.tertiaryContainer,
+                    iconTint = MaterialTheme.colorScheme.tertiary,
+                    modifier = Modifier.weight(1f),
+                    onClick = { onNavigateToTab(NavigationTab.MIND_MAP) }
+                )
+
+                FeatureTile(
                     title = "مُخطط الدراسة وبومودورو",
                     subtitle = "إدارة الوقت والمهام اليومية",
                     icon = Icons.Default.Timer,
@@ -416,17 +427,24 @@ fun HomeScreen(
                     modifier = Modifier.weight(1f),
                     onClick = { onNavigateToTab(NavigationTab.PLANNER) }
                 )
+            }
 
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
                 FeatureTile(
                     title = "لوحة الأداء والتحليل",
                     subtitle = "مؤشرات الإتقان والإحصائيات",
                     icon = Icons.Default.Analytics,
                     color = MaterialTheme.colorScheme.surfaceVariant,
                     iconTint = MaterialTheme.colorScheme.secondary,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.fillMaxWidth(),
                     onClick = { onNavigateToTab(NavigationTab.ANALYTICS) }
                 )
             }
+
+
         }
 
         Spacer(modifier = Modifier.height(20.dp))

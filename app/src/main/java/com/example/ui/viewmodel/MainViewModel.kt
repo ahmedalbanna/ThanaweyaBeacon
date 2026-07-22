@@ -7,6 +7,9 @@ import com.example.data.local.AppDatabase
 import com.example.data.local.QuizResultEntity
 import com.example.data.local.StudySessionEntity
 import com.example.data.local.StudyTaskEntity
+import com.example.data.remote.DebateMessage
+import com.example.data.remote.DebateTopic
+import com.example.data.remote.DebateTurnFeedback
 import com.example.data.remote.GeminiRepository
 import com.example.data.remote.HighSchoolQuiz
 import com.example.data.remote.MindMapResult
@@ -28,6 +31,57 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val taskDao = db.studyTaskDao()
     private val sessionDao = db.studySessionDao()
     private val repository = GeminiRepository()
+
+    // --- Debate Preset Topics ---
+    val presetDebateTopics = listOf(
+        DebateTopic(
+            id = "french_rev",
+            title = "أسباب ومسببات الثورة الفرنسية (1789)",
+            category = "تاريخ عالمي",
+            initialPerspective = "تُعتبر الثورة الفرنسية نتاجاً متوقعاً للظلم الاجتماعي والطبقية المفرطة واستبداد نظام الحكم القديم مع الأزمة المالية الخانقة.",
+            aiOpponentRole = "مؤرخ معارض يرى أن الثورة الفرنسية كانت نتيجة صراع نفوذ بين الطبقة البورجوازية النامية والأرستقراطية، وأن العوامل الفكرية لنشر أفكار التنوير وتأثرها بالثورة الأمريكية هي المحرك الأساسي وليس مجرد الجوع والفقر.",
+            description = "مناظرة تاريخية حول الأسباب الحقيقية لاشتعال الثورة الفرنسية: هل هي الأزمة المالية والفقر، أم التحول الفكري وصراع النفوذ الطبقي؟"
+        ),
+        DebateTopic(
+            id = "french_campaign_egypt",
+            title = "أسباب ودوافع الحملة الفرنسية على مصر (1798)",
+            category = "تاريخ مصر الحديث",
+            initialPerspective = "جاءت الحملة الفرنسية بقيادة نابليون بونابرت بهدف قطع طريق التجارة الإنجليزي إلى الهند وتأسيس إمبراطورية فرنسية في الشرق.",
+            aiOpponentRole = "مؤرخ معارض يرى أن الدافع الأكبر للحملة كان مصلحة نابليون الشخصية للهروب من الأزمات السياسية في باريس، والتنافس الاستعماري التجاري للسيطرة على البحر المتوسط وليس الهند فقط.",
+            description = "مناظرة حول أهداف نابليون بونابرت والحملة الفرنسية: التنافس الاستعماري وتأمين التجارة أم الأطماع الشخصية والموقع الاستراتيجي؟"
+        ),
+        DebateTopic(
+            id = "urabi_revolt",
+            title = "عوامل ونتائج الثورة العرابية (1881)",
+            category = "تاريخ مصر الحديث",
+            initialPerspective = "قاد أحمد عرابي الثورة للمطالبة بالحقوق الوطنية والحد من التدخل الأجنبي وإصلاح الجيش وتنفيذ الدستور.",
+            aiOpponentRole = "مؤرخ معارض يرى أن الثورة العرابية تعجلت في صدامها مع الخديوي وعطلت مسار الإصلاح السياسي وأتاحت الذريعة المباشرة للاحتلال البريطاني لمصر عام 1882.",
+            description = "مناظرة حامية حول الحركة العرابية: هل كانت حركة وطنية حاسمة أم تسببت ثغراتها الميدانية والسياسية في الاحتلال البريطاني؟"
+        ),
+        DebateTopic(
+            id = "revolution_1919",
+            title = "دوافع ومكتسبات ثورة 1919 الوطنية",
+            category = "تاريخ مصر الحديث",
+            initialPerspective = "تُعد ثورة 1919 النموذج الأول للثورة الشعبية الوطنية الشاملة المطالبة بالاستقلال التام وإلغاء الحماية البريطانية بقيادة سعد زغلول.",
+            aiOpponentRole = "مؤرخ معارض يرى أن الحلفاء والظروف الدولية عقب الحرب العالمية الأولى وإعلان مبادئ ويلسون كانت الفاعل الحقيقي في نيل التصريح، وأن الثورة لم تحقق الاستقلال الكامل بسبب التحفظات الأربعة.",
+            description = "تقييم ثورة 1919: مدى تحقيق الاستقلال الفعلي مقابل مكاسب الدستور ووعي الأمة."
+        ),
+        DebateTopic(
+            id = "ww1_causes",
+            title = "الأسباب المباشرة والعميقة للحرب العالمية الأولى (1914)",
+            category = "تاريخ عالمي معاصر",
+            initialPerspective = "حادثة اغتيال ولي عهد النمسا فريديناند في سراييفو كانت السبب المباشر لاشتعال الحرب نتيجة نظام التحالفات العسكرية المسبقة.",
+            aiOpponentRole = "مؤرخ معارض يصر على أن السباق الاستعماري الشرس على المستعمرات والتنافس الاقتصادي البحري بين ألمانيا وبريطانيا هو السبب الجذري والوحيد الحاسم لاندلاع الحرب.",
+            description = "مناظرة أسباب الحرب العالمية الأولى: الاغتيال والتحالفات أم الصراع الاستعماري والاقتصادي؟"
+        )
+    )
+
+    // --- State: Debate Simulator ---
+    val selectedDebateTopic = MutableStateFlow(presetDebateTopics.first())
+    val debateMessages = MutableStateFlow<List<DebateMessage>>(emptyList())
+    val isDebateLoading = MutableStateFlow(false)
+    val latestTurnFeedback = MutableStateFlow<DebateTurnFeedback?>(null)
+
 
     // --- State: General App Config ---
     val selectedGrade = MutableStateFlow("الصف الثالث الثانوي - الثانوية العامة")
@@ -90,6 +144,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     init {
         // Initialize with default demo quiz & analysis
         loadDefaultQuiz()
+        startDebateSession(presetDebateTopics.first())
     }
 
     fun setGrade(grade: String) {
@@ -282,4 +337,58 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         pauseTimer()
         timerSecondsRemaining.value = timerTargetMinutes.value * 60
     }
+
+    // --- Historical Debate Actions ---
+    fun startDebateSession(topic: DebateTopic) {
+        selectedDebateTopic.value = topic
+        latestTurnFeedback.value = null
+        val openingMessage = DebateMessage(
+            id = "opening_${System.currentTimeMillis()}",
+            isUser = false,
+            messageText = "أهلاً بك يا طالب الثانوية العامة! أنا أستاذ ومؤرخ معارض في قضية: \"${topic.title}\".\n\nتزعم القراءة التقليدية أن: ${topic.initialPerspective}\n\nلكن وجهة نظري المعارضة ترى أن: ${topic.aiOpponentRole}\n\nكيف تُصيغ حجتك التاريخية وتدعمها بالأدلة والمصادر لتفنيد طروحاتي وتثبيت رأيك؟"
+        )
+        debateMessages.value = listOf(openingMessage)
+    }
+
+    fun sendStudentArgument(argumentText: String) {
+        val trimmed = argumentText.trim()
+        if (trimmed.isEmpty() || isDebateLoading.value) return
+
+        val userMessage = DebateMessage(
+            id = "user_${System.currentTimeMillis()}",
+            isUser = true,
+            messageText = trimmed
+        )
+
+        val updatedList = debateMessages.value + userMessage
+        debateMessages.value = updatedList
+        isDebateLoading.value = true
+
+        viewModelScope.launch {
+            val topic = selectedDebateTopic.value
+            val res = repository.conductDebateTurn(
+                topicTitle = topic.title,
+                aiRole = topic.aiOpponentRole,
+                conversationHistory = updatedList,
+                userArgument = trimmed
+            )
+
+            res.onSuccess { turnResponse ->
+                val aiMessage = DebateMessage(
+                    id = "ai_${System.currentTimeMillis()}",
+                    isUser = false,
+                    messageText = turnResponse.counterArgumentText,
+                    feedback = turnResponse.feedback
+                )
+                debateMessages.value = debateMessages.value + aiMessage
+                latestTurnFeedback.value = turnResponse.feedback
+            }
+            isDebateLoading.value = false
+        }
+    }
+
+    fun resetDebate() {
+        startDebateSession(selectedDebateTopic.value)
+    }
 }
+

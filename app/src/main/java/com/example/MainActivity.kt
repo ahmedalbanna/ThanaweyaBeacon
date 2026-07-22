@@ -19,6 +19,7 @@ import com.example.ui.components.AppBottomNavigation
 import com.example.ui.components.NavigationTab
 import com.example.ui.screens.AnalyticsScreen
 import com.example.ui.screens.AnalyzerScreen
+import com.example.ui.screens.DebateScreen
 import com.example.ui.screens.HomeScreen
 import com.example.ui.screens.MindMapScreen
 import com.example.ui.screens.PlannerScreen
@@ -67,6 +68,7 @@ fun ThanaweyaAppContent(
                 NavigationTab.QUIZ -> QuizScreen(viewModel = viewModel)
                 NavigationTab.ANALYZER -> AnalyzerScreen(viewModel = viewModel)
                 NavigationTab.MIND_MAP -> MindMapScreen(viewModel = viewModel)
+                NavigationTab.DEBATE -> DebateScreen(viewModel = viewModel)
                 NavigationTab.RESEARCH -> ResearchScreen(viewModel = viewModel)
                 NavigationTab.PLANNER -> PlannerScreen(viewModel = viewModel)
                 NavigationTab.ANALYTICS -> AnalyticsScreen(viewModel = viewModel)
@@ -74,3 +76,4 @@ fun ThanaweyaAppContent(
         }
     }
 }
+

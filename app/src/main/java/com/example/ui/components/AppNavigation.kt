@@ -3,6 +3,7 @@ package com.example.ui.components
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountTree
 import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.Gavel
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LibraryBooks
 import androidx.compose.material.icons.filled.Psychology
@@ -24,6 +25,7 @@ enum class NavigationTab(val title: String, val icon: ImageVector, val tag: Stri
     QUIZ("الاختبارات", Icons.Default.Quiz, "tab_quiz"),
     ANALYZER("المُحلل", Icons.Default.Psychology, "tab_analyzer"),
     MIND_MAP("الخرائط", Icons.Default.AccountTree, "tab_mindmap"),
+    DEBATE("المناظرة", Icons.Default.Gavel, "tab_debate"),
     RESEARCH("البحوث", Icons.Default.LibraryBooks, "tab_research"),
     PLANNER("التخطيط", Icons.Default.Timer, "tab_planner"),
     ANALYTICS("الأداء", Icons.Default.BarChart, "tab_analytics")
