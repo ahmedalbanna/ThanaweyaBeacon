@@ -1,0 +1,6 @@
+{
+  "name": "منارة الثانوية",
+  "description": "تطبيق تعليمي ذكي للمرحلة الثانوية - مراجعة المناهج، تحليل النصوص والقواعد، خرائط ذهنية، اختبارات تفاعلية، وتنظيم الدراسة بالذكاء الاصطناعي",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
